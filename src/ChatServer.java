@@ -37,6 +37,8 @@ public class ChatServer {
             serverStarted = true;
         } catch (BindException e) {
             System.out.println("端口已经被使用");
+            System.out.println("请退出相关程序并重新启动服务端");
+            System.exit(0);
         } catch (IOException e) {
             e.printStackTrace();
         }
