@@ -24,13 +24,8 @@ public class ChatServer {
         //  服务器端的 ServerSocket
         ServerSocket serverSocket = null;
 
-        //  客户端的 Socket
-        Socket socket = null;
-
-        //  网络数据输入流
-        DataInputStream dis = null;
-
         boolean serverStarted = false;
+
         try {
             serverSocket = new ServerSocket(8888);
             System.out.println("ServerSocket Start");
@@ -45,37 +40,78 @@ public class ChatServer {
 
         try {
             while (serverStarted) {
-                boolean clientStarted;
-                socket = serverSocket.accept();
-                System.out.println("a client connected");
-                clientStarted = true;
-                dis = new DataInputStream(socket.getInputStream());
-                while (clientStarted) {
-                    String readUTF = dis.readUTF();
-                    System.out.println(readUTF);
-                    if ("exit".equals(readUTF)) {
-                        clientStarted = false;
-                        serverStarted = false;
-                    }
-                }
+                Client client = new Client(serverSocket.accept());
+                new Thread(client).run();
             }
-        } catch (EOFException e) {
-            System.out.println("Client is closed");
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
-                if (dis != null) {
-                    dis.close();
+                if (serverSocket != null) {
+                    serverSocket.close();
                 }
-                if (socket != null) {
-                    socket.close();
-                }
-            } catch (IOException e1) {
-                e1.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
+    }
+
+    /**
+     * 单独处理消息的线程类
+     */
+    class Client implements Runnable {
+
+        /**
+         * 客户端的 Socket
+         */
+        private Socket mSocket;
+
+        /**
+         * 网络数据输入流
+         */
+        private DataInputStream mDis;
+
+        boolean mClientStarted;
+
+        Client(Socket socket) {
+            this.mSocket = socket;
+            try {
+                this.mDis = new DataInputStream(socket.getInputStream());
+                System.out.println("a client connected");
+                mClientStarted = true;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void run() {
+            try {
+                while (mClientStarted) {
+                    String readUTF = mDis.readUTF();
+                    System.out.println(readUTF);
+                    if ("exit".equals(readUTF)) {
+                        mClientStarted = false;
+                    }
+                }
+            } catch (EOFException e) {
+                System.out.println("Client is closed");
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (mDis != null) {
+                        mDis.close();
+                    }
+                    if (mSocket != null) {
+                        mSocket.close();
+                    }
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
     }
 
 }
