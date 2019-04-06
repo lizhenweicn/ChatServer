@@ -12,13 +12,24 @@ public class ChatServer {
 
     public static void main(String[] args) {
         try {
+            boolean serverStarted;
             ServerSocket ss = new ServerSocket(8888);
-            while (true) {
+            serverStarted = true;
+            while (serverStarted) {
+                boolean clientStarted;
                 Socket socket = ss.accept();
                 System.out.println("a client connected");
+                clientStarted = true;
                 DataInputStream dis = new DataInputStream(socket.getInputStream());
-                String readUTF = dis.readUTF();
-                System.out.println(readUTF);
+                while (clientStarted) {
+                    String readUTF = dis.readUTF();
+                    System.out.println(readUTF);
+                    if ("exit".equals(readUTF)) {
+                        clientStarted = false;
+                        serverStarted = false;
+                    }
+                }
+                dis.close();
             }
         } catch (IOException e) {
             e.printStackTrace();
