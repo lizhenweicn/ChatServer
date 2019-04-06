@@ -1,5 +1,7 @@
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
+import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -33,13 +35,15 @@ public class ChatServer {
             serverSocket = new ServerSocket(8888);
             System.out.println("ServerSocket Start");
             serverStarted = true;
+        } catch (BindException e) {
+            System.out.println("端口已经被使用");
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         try {
             while (serverStarted) {
-                boolean clientStarted = false;
+                boolean clientStarted;
                 socket = serverSocket.accept();
                 System.out.println("a client connected");
                 clientStarted = true;
@@ -52,10 +56,11 @@ public class ChatServer {
                         serverStarted = false;
                     }
                 }
-                dis.close();
             }
-        } catch (Exception e) {
+        } catch (EOFException e) {
             System.out.println("Client is closed");
+        } catch (IOException e) {
+            e.printStackTrace();
         } finally {
             try {
                 if (dis != null) {
